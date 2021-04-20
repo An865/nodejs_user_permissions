@@ -1,17 +1,17 @@
 /* Dependencies */
 const express = require('express');
 const app = express();
-const {users} = require('./data');
-const projectRouter = require('./routes/projects');
+const {ROLE, users} = require('./data');
  //imported function defined in basicAuth.js
-const {authUser} = require('./basicAuth');
+ const { authUser, authRole } = require('./basicAuth')
+ const projectRouter = require('./routes/projects');
 
 app.use(express.json());
 app.use(setUser); //see setUser below
 app.use('./projects', projectRouter);
 
 /* Routes */
-app.get('/', (req, res)=> {
+app.get('/', (req, res) => {
     res.send('Home Page');
 });
 
@@ -19,7 +19,8 @@ app.get('/dashboard', authUser, (req, res) => {
     res.send('Dashboard Page');
 });
 
-app.get('/admin', (req, res) => {
+//first authenticate user then their role
+app.get('/admin', authUser, authRole(ROLE.ADMIN), (req, res) => {
     res.send('Admin Page');
 });
 
@@ -27,7 +28,7 @@ app.get('/admin', (req, res) => {
 function setUser(req, res, next){
     const userId = req.body.userId;
     if(userId){
-        req.user = users.find(user => user.id === user.id)
+        req.user = users.find(user => user.id === userId)
     }
     next();
 }
